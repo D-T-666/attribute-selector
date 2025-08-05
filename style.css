@@ -1,0 +1,11 @@
+attribute-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  & > div {
+    display: grid;
+    gap: 0.25rem;
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
