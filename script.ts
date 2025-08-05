@@ -11,7 +11,14 @@ function init() {
     "კლასი": ["1", "2"],
     "სირთულე": ["დაბალი", "საშუალო", "მაღალი"],
   };
-  attributeSelector.addEventListener("click", () => console.log(attributeSelector.value))
+  attributeSelector.value = {
+    "საგანი": ["მათემატიკა"],
+    "კლასი": ["2"],
+  };
+  attributeSelector.addEventListener(
+    "click",
+    () => console.log(attributeSelector.value),
+  );
 }
 
 init();

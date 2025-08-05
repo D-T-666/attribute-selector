@@ -16,51 +16,7 @@ export class AttributeSelectorElement extends HTMLElement {
 
   set options(options: AttributeSelectorOptions) {
     this.#options = options;
-    this.updateOtherOptions();
-  }
-
-  connectedCallback() {
-    this.addEntryButton.innerText = "+";
-    this.addEntryButton.addEventListener(
-      "click",
-      () => this.addEntryElement(),
-    );
-
-    this.appendChild(this.addEntryButton);
-  }
-
-  addEntryElement() {
-    const entry = document.createElement("div");
-
-    const categoryPicker = document.createElement("select");
-    categoryPicker.appendChild(new Option("", "", true));
-    (categoryPicker.firstChild as HTMLOptionElement).hidden = true;
-    for (const c of Object.keys(this.#options)) {
-      categoryPicker.appendChild(new Option(c, c));
-    }
-    categoryPicker.addEventListener(
-      "change",
-      () => this.updateOtherOptions(categoryPicker),
-    );
-
-    const valuePicker = document.createElement("select");
-    valuePicker.appendChild(new Option("", "", true));
-    (valuePicker.firstChild as HTMLOptionElement).hidden = true;
-    valuePicker.addEventListener("change", () => {
-      this.updateOtherOptions(valuePicker);
-    });
-
-    const removeButton = document.createElement("button");
-    removeButton.addEventListener("click", () => {
-      entry.remove();
-      this.updateOtherOptions();
-    });
-    removeButton.innerText = "-";
-
-    entry.append(categoryPicker, valuePicker, removeButton);
-
-    this.insertBefore(entry, this.addEntryButton);
-    this.updateOtherOptions();
+    this.#updateOtherOptions();
   }
 
   get value(): AttributeSelectorOptions {
@@ -69,18 +25,92 @@ export class AttributeSelectorElement extends HTMLElement {
     const entries = this.childNodes;
     for (let i = 0; i < entries.length - 1; i++) {
       const [categoryPicker, valuePicker] = entries[i].childNodes;
-      const [c, v] = [(categoryPicker as HTMLSelectElement).value, (valuePicker as HTMLSelectElement).value];
+      const [c, v] = [
+        (categoryPicker as HTMLSelectElement).value,
+        (valuePicker as HTMLSelectElement).value,
+      ];
 
       if (c && v) {
         if (res[c] === undefined) {
           res[c] = [v];
         } else {
-	        res[c].push(v);
+          res[c].push(v);
         }
       }
     }
 
     return res;
+  }
+
+  set value(options: AttributeSelectorOptions) {
+    this.innerHTML = "";
+    this.appendChild(this.addEntryButton);
+    const list = [];
+    for (const _ of Object.values(options).flat()) {
+      list.push(this.#addEntryElement());
+    }
+    let i = 0;
+    this.#updateOtherOptions();
+    for (const [category, values] of Object.entries(options)) {
+      for (const value of values) {
+        const [categoryPicker, valuePicker] = list[i];
+        categoryPicker.value = category;
+        this.#updateOtherOptions(categoryPicker);
+        valuePicker.value = value;
+        this.#updateOtherOptions(valuePicker);
+        i++;
+      }
+    }
+    this.#updateOtherOptions();
+  }
+
+  connectedCallback() {
+    this.addEntryButton.innerText = "+";
+    this.addEntryButton.addEventListener(
+      "click",
+      () => {
+        this.#addEntryElement();
+        this.#updateOtherOptions();
+      },
+    );
+
+    this.appendChild(this.addEntryButton);
+  }
+
+  #addEntryElement(): [HTMLSelectElement, HTMLSelectElement] {
+    const hiddenOption = new Option("", "", true);
+    hiddenOption.hidden = true;
+    const entry = document.createElement("div");
+
+    const categoryPicker = document.createElement("select");
+    categoryPicker.appendChild(hiddenOption.cloneNode());
+    for (const c of Object.keys(this.#options)) {
+      categoryPicker.appendChild(new Option(c, c));
+    }
+    categoryPicker.addEventListener(
+      "change",
+      () => this.#updateOtherOptions(categoryPicker),
+    );
+
+    const valuePicker = document.createElement("select");
+    valuePicker.appendChild(hiddenOption.cloneNode());
+    valuePicker.addEventListener(
+      "change",
+      () => this.#updateOtherOptions(valuePicker),
+    );
+
+    const removeButton = document.createElement("button");
+    removeButton.addEventListener("click", () => {
+      entry.remove();
+      this.#updateOtherOptions();
+    });
+    removeButton.innerText = "-";
+
+    entry.append(categoryPicker, valuePicker, removeButton);
+
+    this.insertBefore(entry, this.addEntryButton);
+
+    return [categoryPicker, valuePicker];
   }
 
   #setOptionsForElement(
@@ -97,7 +127,6 @@ export class AttributeSelectorElement extends HTMLElement {
         elt.appendChild(new Option(key, key));
       }
     }
-    console.log(elt.childNodes, keys, reset);
     let opt = elt.firstChild?.nextSibling as
       | HTMLOptionElement
       | null;
@@ -110,7 +139,7 @@ export class AttributeSelectorElement extends HTMLElement {
     }
   }
 
-  updateOtherOptions(elt?: HTMLSelectElement) {
+  #updateOtherOptions(elt?: HTMLSelectElement) {
     const list: [string, string, number][] = [];
     const activeOptions: { [category: string]: { [value: string]: number } } =
       {};
