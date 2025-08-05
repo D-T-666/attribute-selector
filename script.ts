@@ -11,6 +11,7 @@ function init() {
     "კლასი": ["1", "2"],
     "სირთულე": ["დაბალი", "საშუალო", "მაღალი"],
   };
+  attributeSelector.addEventListener("click", () => console.log(attributeSelector.value))
 }
 
 init();

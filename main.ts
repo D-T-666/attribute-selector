@@ -63,6 +63,26 @@ export class AttributeSelectorElement extends HTMLElement {
     this.updateOtherOptions();
   }
 
+  get value(): AttributeSelectorOptions {
+    const res: AttributeSelectorOptions = {};
+
+    const entries = this.childNodes;
+    for (let i = 0; i < entries.length - 1; i++) {
+      const [categoryPicker, valuePicker] = entries[i].childNodes;
+      const [c, v] = [(categoryPicker as HTMLSelectElement).value, (valuePicker as HTMLSelectElement).value];
+
+      if (c && v) {
+        if (res[c] === undefined) {
+          res[c] = [v];
+        } else {
+	        res[c].push(v);
+        }
+      }
+    }
+
+    return res;
+  }
+
   #setOptionsForElement(
     elt: HTMLSelectElement,
     options: { [option: string]: boolean },
@@ -97,8 +117,8 @@ export class AttributeSelectorElement extends HTMLElement {
 
     const entries = this.childNodes;
     for (let i = 0; i < entries.length - 1; i++) {
-	    const categoryPicker = entries[i].childNodes[0] as HTMLSelectElement;
-	    const valuePicker = entries[i].childNodes[1] as HTMLSelectElement;
+      const categoryPicker = entries[i].childNodes[0] as HTMLSelectElement;
+      const valuePicker = entries[i].childNodes[1] as HTMLSelectElement;
       const [c, v] = [categoryPicker.value, valuePicker.value];
 
       if (c !== undefined && v !== undefined) {
@@ -113,7 +133,7 @@ export class AttributeSelectorElement extends HTMLElement {
     for (let i = 0; i < list.length; i++) {
       const [category, value, ind] = list[i];
       const categoryPicker = entries[ind].childNodes[0] as HTMLSelectElement;
-	    const valuePicker = entries[ind].childNodes[1] as HTMLSelectElement;
+      const valuePicker = entries[ind].childNodes[1] as HTMLSelectElement;
       delete activeOptions[category][value];
 
       const availableOptions: {
